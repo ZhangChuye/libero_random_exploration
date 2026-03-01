@@ -11,6 +11,9 @@ import warnings
 warnings.simplefilter('always', ResourceWarning)  # Show all resource warnings
 from tap import Tap
 from environment.libero.lb_data.lb_randsam_utils import lb_rand_sample_1_ep
+# Ensure custom LIBERO envs are registered into gym
+import environment.libero.init_libero  # noqa: F401
+from datetime import datetime
 
 class Parser(Tap):
     sub_conf: str = 'config.maze2d'
@@ -33,6 +36,9 @@ def main():
 
 
     el_name = rs_cfg['el_name']
+
+    import environment.libero.init_libero as init_libero
+    init_libero.register_libero()
 
     envlist: LiberoEnvList_V3
     envlist = gym.make(rs_cfg['el_name'],) #  gen_data=True)
@@ -77,7 +83,8 @@ def main():
 
     h5_root = './data_dir/scratch/libero/env_rand_samples'
     os.makedirs(h5_root, exist_ok=True)
-    h5_save_path = f'{h5_root}/{args.sub_conf}.hdf5'
+    date_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+    h5_save_path = f'{h5_root}/{args.sub_conf}_{date_time}.hdf5'
 
     ## ----------------------------------
     ## Finished all, save to hdf5
