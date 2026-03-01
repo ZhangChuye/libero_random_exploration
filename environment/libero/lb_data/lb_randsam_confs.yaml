@@ -269,3 +269,57 @@ lb_randsam_goal_500ep:
   orn_sample_range: [-2.8, 2.8]
 
   r_a_g_sample_weight:
+
+
+lb_randsam_spatial_3ep:
+  
+  seed_u: 27
+  el_name: libero_spatial
+
+  rand_explo_num_Ep_per_tk: 3
+
+  x_limit: [-1.0, 3.5] ## facing cameras
+  y_limit: [-2.5, 2.5] ## left / right
+  z_limit: [0.0, 1.30]
+
+  is_stop_when_out: true
+  rand_act_noise_std: 0.003
+  rand_act_noise_std_orn: 0.00001
+  act_min_np: [-1., -1., -1., -0.3, -0.3, -0.3, -1.]
+  act_max_np: [1.,  1.,   1.,  0.3, 0.3, 0.3, 1.]
+
+  r_a_g_ranges: [[-0.981,-0.98], [0.98, 0.981]]
+
+  rand_ep_len: 20 ## min len of actions
+  rand_act_full_len: 40
+
+  orn_sample_range: [-0.3, 0.3]
+
+  r_a_g_sample_weight:
+
+
+lb_randsam_spatial_50ep:
+  
+  seed_u: 27
+  el_name: libero_spatial
+
+  rand_explo_num_Ep_per_tk: 50
+
+  x_limit: [-1.0, 3.5] ## facing cameras
+  y_limit: [-2.5, 2.5] ## left / right
+  z_limit: [0.0, 1.30]
+
+  is_stop_when_out: true
+  rand_act_noise_std: 0.003
+  rand_act_noise_std_orn: 0.00001
+  act_min_np: [-1., -1., -1., -0.3, -0.3, -0.3, -1.]
+  act_max_np: [1.,  1.,   1.,  0.3, 0.3, 0.3, 1.]
+
+  r_a_g_ranges: [[-0.981,-0.98], [0.98, 0.981]]
+
+  rand_ep_len: 20 ## min len of actions
+  rand_act_full_len: 40
+
+  orn_sample_range: [-0.3, 0.3]
+
+  r_a_g_sample_weight:

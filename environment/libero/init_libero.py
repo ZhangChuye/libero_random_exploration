@@ -16,6 +16,9 @@ Dset_LB_8tk_65_72 = 'libero_90_65To72' ## data dir title
 LB_goal_list = [0,1,2,3,4,5,6,7,8,9]
 Dset_LB_goal = 'libero_goal' ## data dir title
 
+Dset_LB_spatial = 'libero_spatial' ## data dir title
+LB_spatial_list = [0,1,2,3,4,5,6,7,8,9]
+
 def register_libero():
 
     ts_st = 10000
@@ -40,6 +43,30 @@ def register_libero():
             'dataset_dir': LB_data_dir,
             'dataset_name': Dset_LB_goal,
             'dataset_url':f'{root_dir}/libero_goal.hdf5',
+        }
+    )
+
+
+    ts_st = 10000
+    register(
+        id='libero_spatial',
+        entry_point='environment.libero.lb_env_v3:LiberoEnvList_V3',
+        max_episode_steps=250,
+        kwargs={
+            'task_suite_name': 'libero_spatial',
+            'task_idx_list': LB_spatial_list,
+            'num_envs_per_task': 1,
+            'train_seed_start': ts_st,
+            'envlist_cfg': dict(
+                env_act_scale=None,
+                env_fr_skip=None,
+                env_mocap_minmax=None,
+                env_act_repeat=None,
+                ),
+            'eval_seed_start': 100,
+            'dataset_dir': LB_data_dir,
+            'dataset_name': Dset_LB_spatial,
+            'dataset_url':f'{root_dir}/{Dset_LB_spatial}.hdf5',
         }
     )
 
