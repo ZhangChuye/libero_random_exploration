@@ -12,7 +12,8 @@ export PYTHONPATH=/media/czhang883/PORTABLE_SSD/GVF-TAPE/third_party/LIBERO:$PYT
 # sub_conf='lb_randsam_goal_20ep'
 # sub_conf='lb_randsam_goal_40ep'
 # sub_conf='lb_randsam_goal_80ep'
-sub_conf='lb_randsam_goal_3ep'
+# sub_conf='lb_randsam_goal_3ep'
+sub_conf='lb_randsam_goal_500ep'
 # sub_conf='lb_randsam_goal_example'
 
 {
