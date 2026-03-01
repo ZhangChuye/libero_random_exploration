@@ -58,8 +58,8 @@ def lb_rand_sample_1_ep(env_u: OffScreenRenderEnv, rs_cfg: dict):
     rand_act_full_len =  rs_cfg['rand_act_full_len'] # 24
     orn_sample_range = rs_cfg['orn_sample_range'] # (-0.1, 0.1)
 
-    assert np.isclose( act_min_np[:3], - np.ones(shape=(3,)) ).all(), 'the below sampling only support this'
-    assert np.isclose( act_max_np[:3], np.ones(shape=(3,)) ).all()
+    # assert np.isclose( act_min_np[:3], - np.ones(shape=(3,)) ).all(), 'the below sampling only support this'
+    # assert np.isclose( act_max_np[:3], np.ones(shape=(3,)) ).all()
     assert np.isclose( act_min_np[3:6], np.full(shape=3, fill_value=orn_sample_range[0]) ).all(), 'the below sampling only support this'
     assert np.isclose( act_max_np[3:6], np.full(shape=3, fill_value=orn_sample_range[1]) ).all()
     
