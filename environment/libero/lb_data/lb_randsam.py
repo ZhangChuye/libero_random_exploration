@@ -50,6 +50,9 @@ def main():
     all_ep_imgs = []
     all_ep_acts = []
     all_ep_ee_poses = []
+    all_ep_ee_ori = []
+    all_ep_gripper_states = []
+    all_ep_rewards = []
     all_ep_env_seed = []
 
     for i_t, tk in enumerate(envlist.task_list):
@@ -61,7 +64,14 @@ def main():
             
             ## -----------------
             ### do sampling here
-            imgs_ep, acts_ep, ee_poses_ep = lb_rand_sample_1_ep(env_u=env, rs_cfg=rs_cfg)
+            (
+                imgs_ep,
+                acts_ep,
+                ee_poses_ep,
+                ee_ori_ep,
+                gripper_states_ep,
+                rewards_ep,
+            ) = lb_rand_sample_1_ep(env_u=env, rs_cfg=rs_cfg)
 
             ## -----------------
             ## Finished, close env
@@ -71,6 +81,9 @@ def main():
             all_ep_imgs.append(imgs_ep)
             all_ep_acts.append(acts_ep)
             all_ep_ee_poses.append(ee_poses_ep)
+            all_ep_ee_ori.append(ee_ori_ep)
+            all_ep_gripper_states.append(gripper_states_ep)
+            all_ep_rewards.append(rewards_ep)
 
             all_ep_group_name.append(f'{tk}/{i_ep}/')
             all_ep_env_seed.append(e_seed)
@@ -109,6 +122,9 @@ def main():
             fgroup.create_dataset('agentview_image', data=all_ep_imgs[i_ep])
             fgroup.create_dataset('action', data=all_ep_acts[i_ep])
             fgroup.create_dataset('ee_poses', data=all_ep_ee_poses[i_ep])
+            fgroup.create_dataset('ee_ori', data=all_ep_ee_ori[i_ep])
+            fgroup.create_dataset('gripper_states', data=all_ep_gripper_states[i_ep])
+            fgroup.create_dataset('rewards', data=all_ep_rewards[i_ep])
 
     ## lock file
     if 'luotest' not in args.sub_conf:

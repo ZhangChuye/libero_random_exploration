@@ -36,10 +36,9 @@ except Exception:
 # ---------------------------
 # Edit paths if needed.
 DATASET_A_DIR = Path(
-    "/media/czhang883/PORTABLE_SSD/libero_random_exploration/"
-    "data_dir/scratch/libero/env_rand_samples/lb_randsam_goal_100ep_single_task"
+    "/media/czhang883/PORTABLE_SSD/libero_random_exploration/data_dir/scratch/libero/env_rand_samples/lb_randsam_spatial_200ep_single_task"
 )
-DATASET_B_DIR = Path("/media/czhang883/PORTABLE_SSD/LIBERO/libero/datasets/libero_goal")
+DATASET_B_DIR = Path("/media/czhang883/PORTABLE_SSD/LIBERO/libero/datasets/libero_spatial")
 OUT_DIR = Path(
     "/media/czhang883/PORTABLE_SSD/libero_random_exploration/data_dir/scratch/libero/tsne_compare"
 )

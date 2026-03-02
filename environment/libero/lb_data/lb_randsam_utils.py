@@ -2,6 +2,44 @@ import numpy as np
 from libero.libero.envs import OffScreenRenderEnv
 from tqdm import tqdm
 
+
+def _require_obs_key(obs: dict, candidates: list[str], field_desc: str):
+    for key in candidates:
+        if key in obs:
+            return obs[key]
+    raise KeyError(
+        f"Missing required observation field for {field_desc}. "
+        f"Tried keys={candidates}, available keys={sorted(list(obs.keys()))}"
+    )
+
+
+def _extract_pose_and_gripper(obs: dict):
+    ee_pos = np.array(
+        _require_obs_key(
+            obs,
+            ["robot0_eef_pos", "eef_pos"],
+            "eef position",
+        ),
+        dtype=np.float64,
+    )
+    ee_ori = np.array(
+        _require_obs_key(
+            obs,
+            ["robot0_eef_quat", "eef_quat"],
+            "eef quaternion",
+        ),
+        dtype=np.float64,
+    )
+    gripper_states = np.array(
+        _require_obs_key(
+            obs,
+            ["robot0_gripper_qpos", "gripper_qpos", "gripper_states"],
+            "gripper states",
+        ),
+        dtype=np.float64,
+    )
+    return ee_pos, ee_ori, gripper_states
+
 def lb_rand_sample_1_ep(env_u: OffScreenRenderEnv, rs_cfg: dict):
     '''
     From libero/notebook/luotest_90_taskorder.ipynb
@@ -73,11 +111,14 @@ def lb_rand_sample_1_ep(env_u: OffScreenRenderEnv, rs_cfg: dict):
 
 
 
-    cur_ee_pos = obs['robot0_eef_pos']
-    ee_poses_ep = [cur_ee_pos,]
+    cur_ee_pos, cur_ee_ori, cur_gripper_states = _extract_pose_and_gripper(obs)
+    ee_poses_ep = [cur_ee_pos]
+    ee_ori_ep = [cur_ee_ori]
+    gripper_states_ep = [cur_gripper_states]
     cur_img = obs['agentview_image']
-    imgs_ep = [cur_img,]
+    imgs_ep = [cur_img]
     acts_ep = []
+    rewards_ep = []
 
     # for _ in range(15):
     while len(acts_ep) < rand_ep_len:
@@ -138,13 +179,16 @@ def lb_rand_sample_1_ep(env_u: OffScreenRenderEnv, rs_cfg: dict):
             act_u_noisy = act_u + noise
             act_u_noisy = np.clip(act_u_noisy, a_min=act_min_np, a_max=act_max_np)
 
-            obs,_,_,_ = env_u.step(act_u_noisy)
+            obs, rew, _, _ = env_u.step(act_u_noisy)
             
             acts_ep.append(act_u_noisy)
+            rewards_ep.append(rew)
             imgs_ep.append(obs['agentview_image'])
             
-            cur_ee_pos = obs['robot0_eef_pos']
-            ee_poses_ep.append(obs['robot0_eef_pos'])
+            cur_ee_pos, cur_ee_ori, cur_gripper_states = _extract_pose_and_gripper(obs)
+            ee_poses_ep.append(cur_ee_pos)
+            ee_ori_ep.append(cur_ee_ori)
+            gripper_states_ep.append(cur_gripper_states)
             
             if is_stop_when_out:
                 x_cur, y_cur, z_cur = cur_ee_pos
@@ -161,8 +205,17 @@ def lb_rand_sample_1_ep(env_u: OffScreenRenderEnv, rs_cfg: dict):
         print('ee:', ee_poses_ep[-1])
         print('noise:', noise)
 
-    assert len(acts_ep) == len(ee_poses_ep) -1 == len(imgs_ep) - 1 # == rand_ep_len
+    assert len(acts_ep) == len(rewards_ep)
+    assert len(acts_ep) == len(ee_poses_ep) - 1 == len(imgs_ep) - 1
+    assert len(acts_ep) == len(ee_ori_ep) - 1 == len(gripper_states_ep) - 1
     assert type(acts_ep[0]) == type(ee_poses_ep[0]) == type(imgs_ep[0]) == np.ndarray
 
     # mpy.show_images(imgs_ep, columns=8)
-    return imgs_ep, acts_ep, ee_poses_ep
+    return (
+        imgs_ep,
+        acts_ep,
+        ee_poses_ep,
+        ee_ori_ep,
+        gripper_states_ep,
+        rewards_ep,
+    )
