@@ -1,10 +1,14 @@
 #!/bin/bash
 source ~/.bashrc
 # source activate v2a
-source ~/miniconda3/etc/profile.d/conda.sh
+if [ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]; then
+  source "$HOME/miniconda3/etc/profile.d/conda.sh"
+elif [ -f "/coc/flash7/czhang883/miniconda3/etc/profile.d/conda.sh" ]; then
+  source "/coc/flash7/czhang883/miniconda3/etc/profile.d/conda.sh"
+fi
 conda activate v2a
 
-export PYTHONPATH=/media/czhang883/PORTABLE_SSD/GVF-TAPE/third_party/LIBERO:$PYTHONPATH
+export PYTHONPATH=/coc/flash7/czhang883/Documents/LIBERO:$PYTHONPATH
 
 
 # sub_conf='lb_randsam_8tk_perTk5'
@@ -14,8 +18,8 @@ export PYTHONPATH=/media/czhang883/PORTABLE_SSD/GVF-TAPE/third_party/LIBERO:$PYT
 # sub_conf='lb_randsam_goal_80ep'
 # sub_conf='lb_randsam_goal_3ep'
 # sub_conf='lb_randsam_goal_500ep'
-# sub_conf='lb_randsam_spatial_3ep'
-sub_conf='lb_randsam_spatial_50ep'
+sub_conf='lb_randsam_spatial_3ep'
+# sub_conf='lb_randsam_spatial_50ep'
 # sub_conf='lb_randsam_goal_example'
 
 {

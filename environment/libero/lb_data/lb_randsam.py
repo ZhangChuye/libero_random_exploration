@@ -5,23 +5,24 @@ import numpy as np
 from importlib import reload
 import environment; # reload(environment)
 from environment.libero.lb_env_v3 import LiberoEnvList_V3
-from diffuser.utils import utils
 from tqdm import tqdm
 import warnings
 warnings.simplefilter('always', ResourceWarning)  # Show all resource warnings
-from tap import Tap
+import argparse
 from environment.libero.lb_data.lb_randsam_utils import lb_rand_sample_1_ep
 # Ensure custom LIBERO envs are registered into gym
 import environment.libero.init_libero  # noqa: F401
 from datetime import datetime
 
-class Parser(Tap):
-    sub_conf: str = 'config.maze2d'
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--sub_conf", type=str, default="config.maze2d")
+    return parser.parse_args()
 
 def main():
     '''a helper script to generate dataset of random samples in the Libero env'''
 
-    args = Parser().parse_args()
+    args = parse_args()
 
     file_path = 'environment/libero/lb_data/lb_randsam_confs.yaml'
     # Open the YAML file and load its contents
