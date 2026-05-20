@@ -1,24 +1,26 @@
 """
 Convert random-sampled LIBERO goal HDF5 into per-task LIBERO-style demo files.
 
-Input (current random sampler output):
-    <task_name>/<episode_idx>/{action, agentview_image, ee_poses}
+Input (current random sampler output, required fields):
+    <task_name>/<episode_idx>/
+        action
+        agentview_image
+        ee_poses
+        ee_ori
+        gripper_states
+        rewards
 
 Output (per task, LIBERO-style keys):
     data/demo_i/
         actions
         dones
         rewards
-        robot_states
-        states
         obs/
             agentview_rgb
-            eye_in_hand_rgb
             ee_pos
             ee_ori
             ee_states
             gripper_states
-            joint_states
 
 This script is intentionally no-args. Edit paths below if needed, then run:
     python environment/utils/to_single_task_hdf5.py
@@ -33,15 +35,13 @@ import numpy as np
 # ---------------------------
 # Edit these paths if needed.
 INPUT_H5 = Path(
-    "/media/czhang883/PORTABLE_SSD/libero_random_exploration/"
-    "data_dir/scratch/libero/env_rand_samples/lb_randsam_goal_100ep_20260301_042335.hdf5"
+    "/media/czhang883/PORTABLE_SSD/libero_random_exploration/data_dir/scratch/libero/env_rand_samples/lb_randsam_spatial_200ep_20260302_170150.hdf5"
 )
 OUTPUT_DIR = Path(
-    "/media/czhang883/PORTABLE_SSD/libero_random_exploration/"
-    "data_dir/scratch/libero/env_rand_samples/lb_randsam_goal_100ep_single_task"
+    "/media/czhang883/PORTABLE_SSD/libero_random_exploration/data_dir/scratch/libero/env_rand_samples/lb_randsam_spatial_200ep_single_task"
 )
 LIBERO_TEMPLATE_DIR = Path(
-    "/media/czhang883/PORTABLE_SSD/LIBERO/libero/datasets/libero_goal"
+    "/media/czhang883/PORTABLE_SSD/LIBERO/libero/datasets/libero_spatial"
 )
 # ---------------------------
 
@@ -54,23 +54,16 @@ def _normalize_lengths(
     imgs: np.ndarray,
     acts: np.ndarray,
     ee_pos: np.ndarray,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    ee_ori: np.ndarray,
+    gripper_states: np.ndarray,
+    rewards: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Match LIBERO's convention: per-step arrays share same length T.
     Random samples often store obs with T+1 and actions with T.
     """
-    t = min(len(acts), len(imgs), len(ee_pos))
-    return imgs[:t], acts[:t], ee_pos[:t]
-
-
-def _gripper_action_to_states(gripper_action: np.ndarray) -> np.ndarray:
-    """
-    Map action[-1] in [-1, 1] to a plausible 2-finger state in meters.
-    Loader uses first channel and divides by 0.04.
-    """
-    g = np.clip(gripper_action.astype(np.float64), -1.0, 1.0)
-    open_width = (g + 1.0) * 0.5 * 0.04  # [0, 0.04]
-    return np.stack([open_width, -open_width], axis=1)
+    t = min(len(acts), len(imgs), len(ee_pos), len(ee_ori), len(gripper_states), len(rewards))
+    return imgs[:t], acts[:t], ee_pos[:t], ee_ori[:t], gripper_states[:t], rewards[:t]
 
 
 def _copy_template_data_attrs_if_exists(task_name: str, data_group: h5py.Group) -> None:
@@ -110,10 +103,34 @@ def convert() -> None:
                 total_samples = 0
                 for i_demo, ep_key in enumerate(ep_keys):
                     ep = task_group[ep_key]
+                    missing = [
+                        k
+                        for k in [
+                            "agentview_image",
+                            "action",
+                            "ee_poses",
+                            "ee_ori",
+                            "gripper_states",
+                            "rewards",
+                        ]
+                        if k not in ep
+                    ]
+                    if missing:
+                        raise ValueError(
+                            f"{INPUT_H5} is missing required keys in {task_name}/{ep_key}: {missing}. "
+                            "Please regenerate data using the updated lb_randsam collector "
+                            "that records real orientation / gripper / rewards."
+                        )
+
                     imgs = np.array(ep["agentview_image"], dtype=np.uint8)
                     acts = np.array(ep["action"], dtype=np.float64)
                     ee_pos = np.array(ep["ee_poses"], dtype=np.float64)
-                    imgs, acts, ee_pos = _normalize_lengths(imgs, acts, ee_pos)
+                    ee_ori = np.array(ep["ee_ori"], dtype=np.float64)
+                    gripper_states = np.array(ep["gripper_states"], dtype=np.float64)
+                    rewards = np.array(ep["rewards"], dtype=np.float64)
+                    imgs, acts, ee_pos, ee_ori, gripper_states, rewards = _normalize_lengths(
+                        imgs, acts, ee_pos, ee_ori, gripper_states, rewards
+                    )
 
                     t = len(acts)
                     if t == 0:
@@ -126,19 +143,13 @@ def convert() -> None:
                     # Core keys your loader uses.
                     obs.create_dataset("agentview_rgb", data=imgs, compression="gzip")
                     obs.create_dataset("ee_pos", data=ee_pos)
-                    obs.create_dataset("ee_ori", data=np.zeros((t, 3), dtype=np.float64))
-                    obs.create_dataset("gripper_states", data=_gripper_action_to_states(acts[:, 6]))
-
-                    # Extra LIBERO-like keys for compatibility with other tools.
-                    obs.create_dataset("eye_in_hand_rgb", data=np.zeros_like(imgs), compression="gzip")
-                    obs.create_dataset("ee_states", data=np.concatenate([ee_pos, np.zeros((t, 3))], axis=1))
-                    obs.create_dataset("joint_states", data=np.zeros((t, 7), dtype=np.float64))
+                    obs.create_dataset("ee_ori", data=ee_ori)
+                    obs.create_dataset("gripper_states", data=gripper_states)
+                    obs.create_dataset("ee_states", data=np.concatenate([ee_pos, ee_ori], axis=1))
 
                     demo.create_dataset("actions", data=acts)
                     demo.create_dataset("dones", data=np.array([0] * (t - 1) + [1], dtype=np.uint8))
-                    demo.create_dataset("rewards", data=np.zeros((t,), dtype=np.uint8))
-                    demo.create_dataset("robot_states", data=np.zeros((t, 9), dtype=np.float64))
-                    demo.create_dataset("states", data=np.zeros((t, 79), dtype=np.float64))
+                    demo.create_dataset("rewards", data=rewards)
 
                     # Match key names seen in official files.
                     demo.attrs["num_samples"] = int(t)

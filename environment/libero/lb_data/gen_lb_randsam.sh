@@ -18,7 +18,8 @@ export PYTHONPATH=/coc/flash7/czhang883/Documents/LIBERO:$PYTHONPATH
 # sub_conf='lb_randsam_goal_80ep'
 # sub_conf='lb_randsam_goal_3ep'
 # sub_conf='lb_randsam_goal_500ep'
-sub_conf='lb_randsam_spatial_3ep'
+# sub_conf='lb_randsam_spatial_50ep'
+sub_conf='lb_randsam_spatial_200ep'
 # sub_conf='lb_randsam_spatial_50ep'
 # sub_conf='lb_randsam_goal_example'
 

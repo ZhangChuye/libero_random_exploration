@@ -7,11 +7,11 @@ import numpy as np
 
 # Single-purpose script by design (no CLI args).
 INPUT_H5 = Path(
-    "/media/czhang883/PORTABLE_SSD/libero_random_exploration/data_dir/scratch/libero/env_rand_samples/lb_randsam_spatial_3ep_20260301_175400.hdf5"
+    "/media/czhang883/PORTABLE_SSD/libero_random_exploration/data_dir/scratch/libero/env_rand_samples/lb_randsam_spatial_200ep_20260302_170150.hdf5"
 )
 OUTPUT_MP4 = INPUT_H5.with_name(f"{INPUT_H5.stem}_all_rgb_concat.mp4")
 FPS = 30
-SPEEDUP = 4  # keep 1 to inspect every frame
+SPEEDUP = 32  # keep 1 to inspect every frame
 SPEED_MODE = "stride"  # "stride" or "fps"
 
 
